@@ -1,0 +1,7 @@
+Legend:
+Each line represents the start times of the operations for a job, along with the machine number.
+Format: <job_index>: <(machine_id, operation_start_time)> <(machine_id, operation_start_time)> ... <(machine_id, operation_start_time)>
+
+job0: (0, 0) (1, 3) (2, 5)
+job1: (0, 3) (2, 7) (1, 8)
+job2: (1, 12) (2, 16) (0, 19)
