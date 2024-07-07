@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <chrono>
 
 /**
  * How to use this script:
@@ -120,9 +121,16 @@ int main(int argc, char* argv[]) {
     read_input(input_file, num_machines, num_jobs, jobs);
 
     std::vector<std::vector<int>> schedule;
+
+    // Measure the execution time for the sequential version
+    auto start_time = std::chrono::high_resolution_clock::now();
     schedule_jobs(num_machines, jobs, schedule);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> sequential_execution_time = end_time - start_time;
 
     write_output(output_file, schedule);
+
+    std::cout << "Sequential execution time: " << sequential_execution_time.count() << " seconds" << std::endl;
 
     return 0;
 }
