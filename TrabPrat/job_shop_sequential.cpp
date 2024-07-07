@@ -5,11 +5,42 @@
 #include <sstream>
 #include <string>
 
+/**
+ * How to use this script:
+ * 
+ * 1. Compile the script using the following command:
+ *    g++ job_shop_sequential.cpp -o job_shop_sequential -std=c++17
+ * 
+ * 2. Create an input file with the job and machine data in the following format:
+ *    <number_of_machines> <number_of_jobs>
+ *    <machine_id> <duration> <machine_id> <duration> ...
+ *    (repeat for each job)
+ * 
+ *    Example input file (input.txt):
+ *    3 3
+ *    0 3 1 2 2 2
+ *    0 2 2 1 1 4
+ *    1 4 2 3 0 1
+ * 
+ * 3. Run the compiled script with the following command:
+ *    ./job_shop_sequential input.txt output.txt
+ * 
+ * 4. The output file (output.txt) will contain the start times of the operations for each job.
+ */
+
 struct Operation {
     int machine_id;
     int duration;
 };
 
+/**
+ * Reads input data from a file.
+ * 
+ * @param file_path The path to the input file.
+ * @param num_machines The number of machines (output parameter).
+ * @param num_jobs The number of jobs (output parameter).
+ * @param jobs The list of jobs, each job is a list of operations (output parameter).
+ */
 void read_input(const std::string& file_path, int& num_machines, int& num_jobs, std::vector<std::vector<Operation>>& jobs) {
     std::ifstream input_file(file_path);
     if (!input_file) {
@@ -29,6 +60,13 @@ void read_input(const std::string& file_path, int& num_machines, int& num_jobs, 
     }
 }
 
+/**
+ * Schedules jobs by assigning start times for their operations.
+ * 
+ * @param num_machines The number of machines.
+ * @param jobs The list of jobs, each job is a list of operations.
+ * @param schedule A vector recording the start times of operations for each job.
+ */
 void schedule_jobs(int num_machines, const std::vector<std::vector<Operation>>& jobs, std::vector<std::vector<int>>& schedule) {
     std::vector<int> machine_end_time(num_machines, 0);
     schedule.resize(jobs.size());
@@ -44,6 +82,12 @@ void schedule_jobs(int num_machines, const std::vector<std::vector<Operation>>& 
     }
 }
 
+/**
+ * Writes the scheduled job start times to an output file.
+ * 
+ * @param file_path The path to the output file.
+ * @param schedule A vector recording the start times of operations for each job.
+ */
 void write_output(const std::string& file_path, const std::vector<std::vector<int>>& schedule) {
     std::ofstream output_file(file_path);
     if (!output_file) {
