@@ -1,10 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-#include <sstream>
-#include <string>
-#include <chrono>
 
 /**
  * How to use this script:
@@ -12,22 +5,35 @@
  * 1. Compile the script using the following command:
  *    g++ job_shop_sequential.cpp -o job_shop_sequential -std=c++17
  * 
- * 2. Create an input file with the job and machine data in the following format:
+ 
+ * 2. Use the script generate_input_data.cpp to generate a input dataset
+ *    
+ *    Or Instead you could create an input file with the job and machine data 
+ *    in the following format:
+ *    
  *    <number_of_machines> <number_of_jobs>
  *    <machine_id> <duration> <machine_id> <duration> ...
  *    (repeat for each job)
- * 
- *    Example input file (input.txt):
+ *    
+ *    Example input file (input3.txt):
  *    3 3
  *    0 3 1 2 2 2
  *    0 2 2 1 1 4
  *    1 4 2 3 0 1
  * 
  * 3. Run the compiled script with the following command:
- *    ./job_shop_sequential input.txt output.txt
+ *    job_shop_sequential input.txt output.txt
  * 
  * 4. The output file (output.txt) will contain the start times of the operations for each job.
  */
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <string>
+#include <chrono>
 
 struct Operation {
     int machine_id;

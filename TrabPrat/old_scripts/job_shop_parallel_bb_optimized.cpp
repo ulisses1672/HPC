@@ -11,6 +11,32 @@
 #include <limits>
 #include <chrono>
 
+/**
+ * How to use this script:
+ * 
+ * 1. Compile the script using the following command:
+ *    g++ job_shop_parallel_bb_optimized.cpp -o job_shop_parallel_bb_optimized -std=c++17 -pthread
+ * 
+ * 2. Create an input file with the job and machine data in the following format:
+ *    <number_of_machines> <number_of_jobs>
+ *    <machine_id> <duration> <machine_id> <duration> ...
+ *    (repeat for each job)
+ * 
+ *    Example input file (input.txt):
+ *    3 3
+ *    0 3 1 2 2 2
+ *    0 2 2 1 1 4
+ *    1 4 2 3 0 1
+ * 
+ * 3. Run the compiled script with the following command:
+ *    ./job_shop_parallel_bb_optimized input.txt output.txt <number_of_threads>
+ * 
+ *    Example:
+ *    ./job_shop_parallel_bb_optimized input.txt output.txt 4
+ * 
+ * 4. The output file (output.txt) will contain the start times of the operations for each job.
+ */
+
 struct Operation {
     int machine_id;
     int duration;
@@ -24,7 +50,7 @@ struct Node {
     int job_index; // Current job index being scheduled
     int op_index; // Current operation index being scheduled
 
-    Node(int num_machines, int num_jobs) 
+    Node(int num_machines, int num_jobs)
         : machine_end_time(num_machines, 0), job_end_time(num_jobs, 0), schedule(num_jobs), cost(0), job_index(0), op_index(0) {}
 
     Node(const Node& other) = default;
@@ -36,8 +62,7 @@ struct Node {
     }
 };
 
-// Mutex to ensure mutual exclusion
-std::mutex mtx;
+std::mutex mtx; // Mutex to ensure mutual exclusion
 
 void read_input(const std::string& file_path, int& num_machines, int& num_jobs, std::vector<std::vector<Operation>>& jobs) {
     std::ifstream input_file(file_path);
@@ -139,6 +164,16 @@ void branch_and_bound_parallel(int num_machines, const std::vector<std::vector<O
     for (auto& thread : threads) {
         thread.join();
     }
+
+    // // Debugging: Print the best schedule
+    // std::cout << "Best Schedule:" << std::endl;
+    // for (size_t job_index = 0; job_index < best_schedule.size(); ++job_index) {
+    //     std::cout << "Job " << job_index << ": ";
+    //     for (size_t i = 0; i < best_schedule[job_index].size(); ++i) {
+    //         std::cout << best_schedule[job_index][i] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 }
 
 void write_output(const std::string& file_path, const std::vector<std::vector<int>>& schedule) {
@@ -161,7 +196,7 @@ void write_output(const std::string& file_path, const std::vector<std::vector<in
 
 int main(int argc, char* argv[]) {
     if (argc != 4) {
-        std::cerr << "Usage: job_shop_parallel <input_file> <output_file> <num_threads>" << std::endl;
+        std::cerr << "Usage: job_shop_parallel_bb_optimized <input_file> <output_file> <num_threads>" << std::endl;
         return 1;
     }
 
