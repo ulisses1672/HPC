@@ -23,7 +23,7 @@
  *    job_shop_parallel_optimized <dataset_name> <output_name> <number_of_threads>
  * 
  *    Example:
- *    job_shop_parallel_bb_optimized input3.txt output.txt 4
+ *    job_shop_parallel_optimized input3.txt output.txt 4
  * 
  * 4. The output file (output.txt) will contain the start times of the operations for each job.
  */
@@ -198,6 +198,7 @@ std::vector<Node> generate_children(const Node& node, const std::vector<std::vec
     }
     return children; // Return the list of generated child nodes
 }
+
 /**
  * Worker thread function to process nodes in the priority queue and generate child nodes.
  * 
@@ -218,6 +219,8 @@ std::vector<Node> generate_children(const Node& node, const std::vector<std::vec
  * The function terminates when the priority queue is empty, indicated by setting the done flag.
  */
 void* worker_thread(void* arg) {
+    auto start_time = std::chrono::high_resolution_clock::now(); // Start timer for the thread
+
     const std::vector<std::vector<Operation>>& jobs = *(const std::vector<std::vector<Operation>>*)arg;
 
     while (!done.load()) {
@@ -249,8 +252,14 @@ void* worker_thread(void* arg) {
             }
         }
     }
+
+    auto end_time = std::chrono::high_resolution_clock::now(); // End timer for the thread
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "Thread duration: " << duration << " milliseconds" << std::endl; // Print thread duration
+
     return nullptr;
 }
+
 /**
  * Writes the best schedule to the output file.
  * 
@@ -298,6 +307,8 @@ void write_output(const std::string& file_path, const std::vector<std::vector<in
  * 7. Outputs the best cost (makespan) found to the console.
  */
 int main(int argc, char* argv[]) {
+    auto total_start_time = std::chrono::high_resolution_clock::now(); // Start timer for the total duration
+
     if (argc != 4) {
         std::cerr << "Usage: job_shop_parallel_bb_optimized <input_file> <output_file> <num_threads>" << std::endl;
         return 1;
@@ -326,6 +337,10 @@ int main(int argc, char* argv[]) {
     }
 
     write_output(output_file, best_schedule); // Write the best schedule to the output file
+
+    auto total_end_time = std::chrono::high_resolution_clock::now(); // End timer for the total duration
+    auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(total_end_time - total_start_time).count();
+    std::cout << "Total execution time: " << total_duration << " milliseconds" << std::endl; // Print total duration
 
     std::cout << "Best cost: " << best_cost.load() << std::endl; // Output the best cost found
 
