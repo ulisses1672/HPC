@@ -294,6 +294,76 @@ void write_output(const std::string& file_path, const std::vector<std::vector<in
     }
 }
 
+// New function to measure and analyze performance
+////
+///// This function measures the performance of the parallel branch-and-bound job shop scheduling algorithm
+/// by running the algorithm with different numbers of threads and recording the execution times.
+/// The function reads the input data from the specified input file, runs the algorithm with the
+/// specified number of threads, and records the execution times for each thread count.
+/// The results are written to a file named "performance_results.txt" in the following format:
+/// Threads Time(s) Speedup
+
+
+
+void measure_and_analyze_performance(const std::string& input_file, const std::string& output_file, int max_threads, int repetitions) {
+    int num_machines, num_jobs;
+    std::vector<std::vector<Operation>> jobs;
+    read_input(input_file, num_machines, num_jobs, jobs);
+
+    std::vector<int> thread_counts = {1, 2, 4, 8, 16, 32};
+    std::vector<double> execution_times(thread_counts.size(), 0.0);
+
+    for (size_t i = 0; i < thread_counts.size(); ++i) {
+        int num_threads = thread_counts[i];
+        double total_time = 0.0;
+
+        for (int rep = 0; rep < repetitions; ++rep) {
+            Node root(num_machines, jobs.size());
+            pq.push(root);
+
+            auto start_time = std::chrono::high_resolution_clock::now();
+
+            std::vector<pthread_t> threads(num_threads);
+            for (int j = 0; j < num_threads; ++j) {
+                pthread_create(&threads[j], nullptr, worker_thread, &jobs);
+            }
+
+            for (auto& thread : threads) {
+                pthread_join(thread, nullptr);
+            }
+
+            auto end_time = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> execution_time = end_time - start_time;
+            total_time += execution_time.count();
+        }
+
+        execution_times[i] = total_time / repetitions;
+
+        // Reset global variables for next run
+        while (!pq.empty()) pq.pop();
+        best_cost = std::numeric_limits<int>::max();
+        best_schedule.clear();
+        done.store(false);
+    }
+
+    double sequential_time = execution_times[0];
+    std::vector<double> speedups(thread_counts.size(), 0.0);
+    for (size_t i = 0; i < thread_counts.size(); ++i) {
+        speedups[i] = sequential_time / execution_times[i];
+    }
+
+    std::ofstream result_file("performance_results.txt");
+    result_file << "Threads\tTime(s)\tSpeedup\n";
+    for (size_t i = 0; i < thread_counts.size(); ++i) {
+        result_file << thread_counts[i] << "\t" << execution_times[i] << "\t" << speedups[i] << "\n";
+    }
+    result_file.close();
+
+    std::cout << "Performance results written to performance_results.txt\n";
+}
+
+
+
 /**
  * Main function to execute the parallel branch-and-bound job shop scheduling algorithm.
  * 
@@ -343,6 +413,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Total execution time: " << total_duration << " milliseconds" << std::endl; // Print total duration
 
     std::cout << "Best cost: " << best_cost.load() << std::endl; // Output the best cost found
+
+     measure_and_analyze_performance(input_file, output_file, 32, 10); // Measure and analyze performance
 
     return 0;
 }
