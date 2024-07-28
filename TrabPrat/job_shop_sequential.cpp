@@ -1,11 +1,9 @@
-
 /**
  * How to use this script:
  * 
  * 1. Compile the script using the following command:
  *    g++ job_shop_sequential.cpp -o job_shop_sequential -std=c++17
  * 
- 
  * 2. Use the script generate_input_data.cpp to generate a input dataset
  *    
  *    Or Instead you could create an input file with the job and machine data 
@@ -73,10 +71,13 @@ void read_input(const std::string& file_path, int& num_machines, int& num_jobs, 
  * @param num_machines The number of machines.
  * @param jobs The list of jobs, each job is a list of operations.
  * @param schedule A vector recording the start times of operations for each job.
+ * @param best_cost Output parameter for the best cost (makespan).
  */
-void schedule_jobs(int num_machines, const std::vector<std::vector<Operation>>& jobs, std::vector<std::vector<int>>& schedule) {
+void schedule_jobs(int num_machines, const std::vector<std::vector<Operation>>& jobs, std::vector<std::vector<int>>& schedule, 
+int& best_cost) {
     std::vector<int> machine_end_time(num_machines, 0);
     schedule.resize(jobs.size());
+    best_cost = 0;
 
     for (size_t job_index = 0; job_index < jobs.size(); ++job_index) {
         int current_time = 0;
@@ -85,6 +86,7 @@ void schedule_jobs(int num_machines, const std::vector<std::vector<Operation>>& 
             schedule[job_index].push_back(start_time);
             current_time = start_time + operation.duration;
             machine_end_time[operation.machine_id] = current_time;
+            best_cost = std::max(best_cost, current_time);
         }
     }
 }
@@ -127,16 +129,18 @@ int main(int argc, char* argv[]) {
     read_input(input_file, num_machines, num_jobs, jobs);
 
     std::vector<std::vector<int>> schedule;
+    int best_cost;
 
     // Measure the execution time for the sequential version
     auto start_time = std::chrono::high_resolution_clock::now();
-    schedule_jobs(num_machines, jobs, schedule);
+    schedule_jobs(num_machines, jobs, schedule, best_cost);
     auto end_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> sequential_execution_time = end_time - start_time;
+    auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 
     write_output(output_file, schedule);
 
-    std::cout << "Sequential execution time: " << sequential_execution_time.count() << " seconds" << std::endl;
+    std::cout << "Total execution time: " << total_duration << " milliseconds" << std::endl;
+    std::cout << "Best cost: " << best_cost << std::endl;
 
     return 0;
 }
